@@ -3,13 +3,18 @@ package com.gabut.mantap.mantap.entities;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
+
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -48,6 +53,20 @@ public class User implements UserDetails {
   @Column(name = "updated_at")
   private Date updatedAt;
 
+  @OneToOne(cascade = CascadeType.REMOVE)
+  @JoinColumn(name = "role_id", referencedColumnName = "id", nullable = false)
+  private Role role;
+
+  public Role getRole() {
+    return role;
+  }
+
+  public User setRole(Role role) {
+    this.role = role;
+
+    return this;
+  }
+
   public User(String name, String email, String password) {
     this.name = name;
     this.email = email;
@@ -56,7 +75,9 @@ public class User implements UserDetails {
 
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
-    return List.of();
+    SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + role.getName().toString());
+
+    return List.of(authority);
   }
 
   public String getPassword() {
